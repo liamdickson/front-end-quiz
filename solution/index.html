@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>Bootstrap 101 Template</title>
+
+    <!-- Bootstrap -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/bootstrap-theme.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="css/style.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+
+<div class="container">
+    <form id="form">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="form-group" id="title">
+                    <!-- Title Template -->
+                </div>
+                <div class="form-group" id="description">
+                    <!-- Description Template -->
+                </div>
+                <div class="form-group" id="notes">
+                    <!-- Notes Template -->
+                </div>
+                <div class="form-group" id="materials">
+                    <!-- Materials Template -->
+                </div>
+            </div>
+        </div>
+        <div class="row top-buffer-lg" id="measurements">
+            <!-- Measurements Template -->
+        </div>
+        <div class="row top-buffer-lg" id="condition">
+            <!-- Condition Template -->
+        </div>
+        <div class="row top-buffer-lg" id="button">
+            <!-- Button Template -->
+        </div>
+    </form>
+</div>
+
+<script type="text/template" id="title-template">
+    <input name="id" hidden="" value="<%= item.id ? item.id : '' %>">
+    <label for="inputTitle">Title</label>
+    <input name="title" type="text" id="inputTitle" class="form-control" required="" value="<%= item.title ? item.title : '' %>">
+</script>
+
+<script type="text/template" id="description-template">
+    <label for="inputDescription">Description</label>
+    <textarea name="description" id="inputDescription" class="form-control" required="" rows="10"
+            ><%= item.description ? item.description : '' %></textarea>
+</script>
+
+<script type="text/template" id="notes-template">
+    <label for="inputNotes">internal notes</label>
+    <textarea name="dealerInternalNotes" id="inputNotes" class="form-control" required=""
+            ><%= item.dealerInternalNotes ? item.dealerInternalNotes : '' %></textarea>
+</script>
+
+<script type="text/template" id="materials-template">
+    <label for="selectMaterials">Materials</label>
+    <select name="material-description" id="selectMaterials" class="form-control" required="">
+        <option disabled="">Select...</option>
+        <% _.each(itemEnums.material, function(mat){ %>
+        <option <%= item.material.description === mat ? 'selected=""' : '' %> ><%= mat %></option>
+        <% }); %>
+    </select>
+    <div class="checkbox">
+        <label><input name="material-restricted" id="restrictedMaterial" type="checkbox"
+            <%= (item.material.restricted === "N") ? '' : 'checked=""' %> >
+            <b>Check this box</b> if the listing contains or may contain restricted materials
+        </label>
+    </div>
+</script>
+
+<script type="text/template" id="measurements-template">
+    <div class="form-group">
+        <div class="col-md-12">
+            <label>Measurements</label>
+            <div class="radio" id="measurement-unit">
+                Measurements are in:
+                <% _.each(itemEnums.measurement.unit, function(unit, abbr){ %>
+                <label class="radio-inline"><input id="<%= abbr %>" type="radio" value="<%= abbr %>"  name="measurement-unit"
+                    <%=item.measurement.unit === abbr ? 'checked' : '' %> >
+                    <%= unit.charAt(0).toUpperCase() + unit.slice(1)  %> (<%= abbr %>)
+                </label>
+                <% }); %>
+            </div>
+            <div class="radio" id="measurement-shape">
+                Measured item is:
+                <% _.each(itemEnums.measurement.shape, function(shape){ %>
+                <label class="radio-inline"><input id="<%= shape %>" type="radio" value="<%= shape %>" name="measurement-shape"
+                    <%=item.measurement.shape === shape ? 'checked' : '' %> >
+                    <%= shape  %>
+                </label>
+                <% }); %>
+            </div>
+            <div class="row top-buffer-md">
+                <div class="col-md-3">
+                    <label for="inputLength">Length:</label>
+                    <div class="input-group">
+                        <input type="text" name="measurement-length" class="form-control measurement-input"
+                               aria-describedby="length-addon" id="inputLength"
+                        <%= item.measurement.length ? 'value='+item.measurement.length : '' %> >
+                        <span class="input-group-addon" id="length-addon">in.</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label for="inputDepth">Depth:</label>
+                    <div class="input-group">
+                        <input type="text" name="measurement-depth" class="form-control measurement-input"
+                               aria-describedby="depth-addon" id="inputDepth"
+                        <%= item.measurement.depth ? 'value='+item.measurement.depth : '' %> >
+                        <span class="input-group-addon" id="depth-addon">in.</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label for="inputHeight">Height:</label>
+                    <div class="input-group">
+                        <input type="text" name="measurement-height" class="form-control measurement-input"
+                               aria-describedby="height-addon" id="inputHeight"
+                        <%= item.measurement.height ? 'value='+item.measurement.height : '' %> >
+                        <span class="input-group-addon" id="height-addon">in.</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label for="inputDiameter">Diameter:</label>
+                    <div class="input-group">
+                        <input type="text" name="measurement-diameter" class="form-control measurement-input"
+                               aria-describedby="diameter-addon" id="inputDiameter"
+                        <%= item.measurement.diameter ? 'value='+item.measurement.diameter : '' %> >
+                        <span class="input-group-addon" id="diameter-addon">in.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/template" id="condition-template">
+    <div class="col-md-12">
+        <label>Condition <span class="subtext">(Select one)</span></label>
+        <div class="radio">
+            <% _.each(itemEnums.condition.description, function(cond){ %>
+            <label class="radio-inline"><input name="condition-description" id="<%= cond %>"
+                                               value="<%= item.condition.description %>" type="radio"
+                    <%= item.condition.description === cond ? 'checked' : '' %> ><%= cond %></label>
+            <% }); %>
+        </div>
+    </div>
+</script>
+
+<script type="text/template" id="button-template">
+    <div class="col-md-12">
+        <button type="button" class="btn btn-primary" onclick="buttonView.save();" id="save">Save</button>
+    </div>
+</script>
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.2.0/backbone-min.js"></script>
+
+<script>
+    var Enumerations = Backbone.Model.extend({
+        urlRoot: '../enums.json'
+    });
+
+    var Item = Backbone.Model.extend({
+        urlRoot: '../item.json'
+    });
+
+    var TitleView = Backbone.View.extend({
+        el: '#title',
+        render: function (item) {
+            var itemObj = item.attributes['result'];
+            var template = _.template($('#title-template').html());
+            this.$el.html(template(itemObj));
+        }
+    });
+
+    var DescriptionView = Backbone.View.extend({
+        el: '#description',
+        render: function (item) {
+            var itemObj = item.attributes['result'];
+            var template = _.template($('#description-template').html());
+            this.$el.html(template(itemObj));
+        }
+    });
+
+    var NotesView = Backbone.View.extend({
+        el: '#notes',
+        render: function (item) {
+            var itemObj = item.attributes['result'];
+            var template = _.template($('#notes-template').html());
+            this.$el.html(template(itemObj));
+        }
+    });
+
+    var MaterialsView = Backbone.View.extend({
+        el: '#materials',
+        render: function (item, enumeration) {
+            var enumObj = enumeration.attributes;
+            var itemObj = item.attributes['result'];
+            var pObj = {itemEnums: enumObj['itemEnums'], item: itemObj['item']};
+            var template = _.template($('#materials-template').html());
+            this.$el.html(template(pObj));
+        }
+    });
+
+    var MeasurementsView = Backbone.View.extend({
+        el: '#measurements',
+        events: {
+            'change input[type=radio]': 'changedRadio'
+        },
+        changedRadio: function () {
+            var measurements = document.getElementsByName('measurement-unit');
+            for(var i = 0; i < measurements.length; i++) {
+                if(measurements[i].checked){
+                    this.updateUnits(measurements[i].id+'.');
+                }
+            }
+            var shapes = document.getElementsByName('measurement-shape');
+            for(var i = 0; i < shapes.length; i++) {
+                if(shapes[i].checked){
+                    this.updateFields(shapes[i].id);
+                }
+            }
+        },
+        updateUnits: function (units) {
+            var addons = document.getElementsByClassName('input-group-addon');
+            for(var i = 0; i < addons.length; i++) {
+                $(addons[i]).text(units);
+            }
+        },
+        updateFields: function (shape) {
+            switch(shape){
+                case 'Circular':
+                    document.getElementById('inputLength').setAttribute('disabled','');
+                    document.getElementById('inputDepth').setAttribute('disabled','');
+                    document.getElementById('inputHeight').setAttribute('disabled','');
+                    document.getElementById('inputDiameter').removeAttribute('disabled');
+                    break;
+                case 'Rectangular':
+                    document.getElementById('inputLength').removeAttribute('disabled');
+                    document.getElementById('inputDepth').removeAttribute('disabled');
+                    document.getElementById('inputHeight').removeAttribute('disabled');
+                    document.getElementById('inputDiameter').setAttribute('disabled','');
+                    break;
+            }
+        },
+        render: function (item, enumeration) {
+            var enumObj = enumeration.attributes;
+            var itemObj = item.attributes['result'];
+            var pObj = {itemEnums: enumObj['itemEnums'], item: itemObj['item']};
+            var template = _.template($('#measurements-template').html());
+            this.$el.html(template(pObj));
+        }
+    });
+
+    var ConditionView = Backbone.View.extend({
+        el: '#condition',
+        render: function (item, enumeration) {
+            var enumObj = enumeration.attributes;
+            var itemObj = item.attributes['result'];
+            var pObj = {itemEnums: enumObj['itemEnums'], item: itemObj['item']};
+            var template = _.template($('#condition-template').html());
+            this.$el.html(template(pObj));
+        }
+    });
+
+    var ButtonView = Backbone.View.extend({
+        el: '#button',
+        render: function () {
+            var template = _.template($('#button-template').html());
+            this.$el.html(template);
+        },
+        save: function () {
+            var output = {};
+            output.title = $('#inputTitle')[0].value ? $('#inputTitle')[0].value : '';
+            output.description = $('#inputDescription')[0].value ? $('#inputDescription')[0].value : '';
+            output.dealerInternalNotes = $('#inputNotes')[0].value ? $('#inputNotes')[0].value : '';
+            output.material = {
+                description: $('#selectMaterials')[0].value ? $('#selectMaterials')[0].value : '',
+                restricted: $('#restrictedMaterial')[0].checked ? 'Y' : 'N'
+            };
+            var unit;
+            var units = document.getElementsByName('measurement-unit');
+            for(var i = 0; i < units.length; i++) {
+                if(units[i].checked){
+                    unit = units[i].value;
+                }
+            }
+            var shape;
+            var shapes = document.getElementsByName('measurement-shape');
+            for(var i = 0; i < shapes.length; i++) {
+                if(shapes[i].checked){
+                    shape = shapes[i].value;
+                }
+            }
+            output.measurement = {
+                unit: unit ? unit : '',
+                shape: shape ? shape : '',
+                length: $('#inputLength')[0].value ? $('#inputLength')[0].value : '',
+                depth: $('#inputDepth')[0].value ? $('#inputDepth')[0].value : '',
+                height: $('#inputHeight')[0].value ? $('#inputHeight')[0].value : '',
+                diameter: $('#inputDiameter')[0].value ? $('#inputDiameter')[0].value : ''
+            };
+            var condition;
+            var conditions = document.getElementsByName('condition-description');
+            for(var i = 0; i < conditions.length; i++) {
+                if(conditions[i].checked){
+                    condition = conditions[i].value;
+                }
+            }
+            output.condition = {
+                description: condition ? condition : ''
+            };
+            console.log(output);
+        }
+    });
+
+    var Router = Backbone.Router.extend({
+        routes: {
+            '' : 'home'
+        }
+    });
+
+    var enumeration = new Enumerations();
+    var item = new Item();
+
+    var titleView = new TitleView();
+    var descriptionView = new DescriptionView();
+    var notesView = new NotesView();
+    var matsView = new MaterialsView();
+    var measurementsView = new MeasurementsView();
+    var conditionView = new ConditionView();
+    var buttonView = new ButtonView();
+
+    var router = new Router();
+    router.on('route:home', function () {
+        $.when(item.fetch(), enumeration.fetch()).done(function () {
+            titleView.render(item);
+            descriptionView.render(item);
+            notesView.render(item);
+            matsView.render(item, enumeration);
+            measurementsView.render(item, enumeration);
+            conditionView.render(item, enumeration);
+            buttonView.render();
+        });
+    });
+
+    Backbone.history.start();
+
+    $.fn.serializeObject = function()
+    {
+        var o = {};
+        var a = this.serializeArray();
+        $.each(a, function() {
+            if (o[this.name]) {
+                if (!o[this.name].push) {
+                    o[this.name] = [o[this.name]];
+                }
+                o[this.name].push(this.value || '');
+            } else {
+                o[this.name] = this.value || '';
+            }
+        });
+        return o;
+    };
+</script>
+
+</body>
+</html>
