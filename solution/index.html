@@ -24,51 +24,48 @@
 <body>
 
 <div class="container">
-    <form id="form">
+    <div id="form"></div>
+</div>
+
+<script type="text/template" id="parent-template">
+    <form>
         <div class="row">
             <div class="col-md-12">
                 <div class="form-group" id="title">
-                    <!-- Title Template -->
                 </div>
                 <div class="form-group" id="description">
-                    <!-- Description Template -->
                 </div>
                 <div class="form-group" id="notes">
-                    <!-- Notes Template -->
                 </div>
                 <div class="form-group" id="materials">
-                    <!-- Materials Template -->
                 </div>
             </div>
         </div>
         <div class="row top-buffer-lg" id="measurements">
-            <!-- Measurements Template -->
         </div>
         <div class="row top-buffer-lg" id="condition">
-            <!-- Condition Template -->
         </div>
         <div class="row top-buffer-lg" id="button">
-            <!-- Button Template -->
         </div>
     </form>
-</div>
+</script>
 
 <script type="text/template" id="title-template">
-    <input name="id" hidden="" value="<%= item.id ? item.id : '' %>">
+    <input id="id" hidden="" value="<%= id ? id : '' %>">
     <label for="inputTitle">Title</label>
-    <input name="title" type="text" id="inputTitle" class="form-control" required="" value="<%= item.title ? item.title : '' %>">
+    <input name="title" type="text" id="inputTitle" class="form-control" required="" value="<%= title ? title : '' %>">
 </script>
 
 <script type="text/template" id="description-template">
     <label for="inputDescription">Description</label>
     <textarea name="description" id="inputDescription" class="form-control" required="" rows="10"
-            ><%= item.description ? item.description : '' %></textarea>
+            ><%= description ? description : '' %></textarea>
 </script>
 
 <script type="text/template" id="notes-template">
     <label for="inputNotes">internal notes</label>
     <textarea name="dealerInternalNotes" id="inputNotes" class="form-control" required=""
-            ><%= item.dealerInternalNotes ? item.dealerInternalNotes : '' %></textarea>
+            ><%= dealerInternalNotes ? dealerInternalNotes : '' %></textarea>
 </script>
 
 <script type="text/template" id="materials-template">
@@ -81,7 +78,7 @@
     </select>
     <div class="checkbox">
         <label><input name="material-restricted" id="restrictedMaterial" type="checkbox"
-            <%= (item.material.restricted === "N") ? '' : 'checked=""' %> >
+            <%= (item.material.restricted === "Y") ? 'checked=""' : '' %> >
             <b>Check this box</b> if the listing contains or may contain restricted materials
         </label>
     </div>
@@ -94,7 +91,8 @@
             <div class="radio" id="measurement-unit">
                 Measurements are in:
                 <% _.each(itemEnums.measurement.unit, function(unit, abbr){ %>
-                <label class="radio-inline"><input id="<%= abbr %>" type="radio" value="<%= abbr %>"  name="measurement-unit"
+                <label class="radio-inline measurement-unit"><input id="<%= abbr %>" type="radio"
+                                                                    value="<%= abbr %>" name="measurement-unit"
                     <%=item.measurement.unit === abbr ? 'checked' : '' %> >
                     <%= unit.charAt(0).toUpperCase() + unit.slice(1)  %> (<%= abbr %>)
                 </label>
@@ -103,7 +101,8 @@
             <div class="radio" id="measurement-shape">
                 Measured item is:
                 <% _.each(itemEnums.measurement.shape, function(shape){ %>
-                <label class="radio-inline"><input id="<%= shape %>" type="radio" value="<%= shape %>" name="measurement-shape"
+                <label class="radio-inline measurement-unit"><input id="<%= shape %>" type="radio"
+                                                                    value="<%= shape %>" name="measurement-shape"
                     <%=item.measurement.shape === shape ? 'checked' : '' %> >
                     <%= shape  %>
                 </label>
@@ -166,7 +165,7 @@
 
 <script type="text/template" id="button-template">
     <div class="col-md-12">
-        <button type="button" class="btn btn-primary" onclick="buttonView.save();" id="save">Save</button>
+        <button type="button" class="btn btn-primary" onclick="parentView.save();" id="save">Save</button>
     </div>
 </script>
 
@@ -180,46 +179,47 @@
 
 <script>
     var Enumerations = Backbone.Model.extend({
-        urlRoot: '../enums.json'
+        urlRoot: '../enums.json',
+        parse: function(response) {
+            return response['itemEnums'];
+        }
     });
 
     var Item = Backbone.Model.extend({
-        urlRoot: '../item.json'
+        urlRoot: '../item.json',
+        parse: function(response) {
+            return response['result']['item'];
+        }
     });
 
     var TitleView = Backbone.View.extend({
         el: '#title',
         render: function (item) {
-            var itemObj = item.attributes['result'];
             var template = _.template($('#title-template').html());
-            this.$el.html(template(itemObj));
+            this.$el.html(template(item.attributes));
         }
     });
 
     var DescriptionView = Backbone.View.extend({
         el: '#description',
         render: function (item) {
-            var itemObj = item.attributes['result'];
             var template = _.template($('#description-template').html());
-            this.$el.html(template(itemObj));
+            this.$el.html(template(item.attributes));
         }
     });
 
     var NotesView = Backbone.View.extend({
         el: '#notes',
         render: function (item) {
-            var itemObj = item.attributes['result'];
             var template = _.template($('#notes-template').html());
-            this.$el.html(template(itemObj));
+            this.$el.html(template(item.attributes));
         }
     });
 
     var MaterialsView = Backbone.View.extend({
         el: '#materials',
         render: function (item, enumeration) {
-            var enumObj = enumeration.attributes;
-            var itemObj = item.attributes['result'];
-            var pObj = {itemEnums: enumObj['itemEnums'], item: itemObj['item']};
+            var pObj = {itemEnums: enumeration.attributes, item: item.attributes};
             var template = _.template($('#materials-template').html());
             this.$el.html(template(pObj));
         }
@@ -231,45 +231,18 @@
             'change input[type=radio]': 'changedRadio'
         },
         changedRadio: function () {
-            var measurements = document.getElementsByName('measurement-unit');
-            for(var i = 0; i < measurements.length; i++) {
-                if(measurements[i].checked){
-                    this.updateUnits(measurements[i].id+'.');
-                }
+            this.$('.input-group-addon').text(this.$('input[name=measurement-unit]:checked').val()+'.');
+            if(this.$('input[name=measurement-shape]:checked').val() === 'Circular'){
+                this.$('.measurement-input').attr('disabled','');
+                this.$('#inputDiameter').removeAttr('disabled');
             }
-            var shapes = document.getElementsByName('measurement-shape');
-            for(var i = 0; i < shapes.length; i++) {
-                if(shapes[i].checked){
-                    this.updateFields(shapes[i].id);
-                }
-            }
-        },
-        updateUnits: function (units) {
-            var addons = document.getElementsByClassName('input-group-addon');
-            for(var i = 0; i < addons.length; i++) {
-                $(addons[i]).text(units);
-            }
-        },
-        updateFields: function (shape) {
-            switch(shape){
-                case 'Circular':
-                    document.getElementById('inputLength').setAttribute('disabled','');
-                    document.getElementById('inputDepth').setAttribute('disabled','');
-                    document.getElementById('inputHeight').setAttribute('disabled','');
-                    document.getElementById('inputDiameter').removeAttribute('disabled');
-                    break;
-                case 'Rectangular':
-                    document.getElementById('inputLength').removeAttribute('disabled');
-                    document.getElementById('inputDepth').removeAttribute('disabled');
-                    document.getElementById('inputHeight').removeAttribute('disabled');
-                    document.getElementById('inputDiameter').setAttribute('disabled','');
-                    break;
+            if(this.$('input[name=measurement-shape]:checked').val() === 'Rectangular'){
+                this.$('.measurement-input').removeAttr('disabled');
+                this.$('#inputDiameter').attr('disabled','');
             }
         },
         render: function (item, enumeration) {
-            var enumObj = enumeration.attributes;
-            var itemObj = item.attributes['result'];
-            var pObj = {itemEnums: enumObj['itemEnums'], item: itemObj['item']};
+            var pObj = {itemEnums: enumeration.attributes, item: item.attributes};
             var template = _.template($('#measurements-template').html());
             this.$el.html(template(pObj));
         }
@@ -278,9 +251,7 @@
     var ConditionView = Backbone.View.extend({
         el: '#condition',
         render: function (item, enumeration) {
-            var enumObj = enumeration.attributes;
-            var itemObj = item.attributes['result'];
-            var pObj = {itemEnums: enumObj['itemEnums'], item: itemObj['item']};
+            var pObj = {itemEnums: enumeration.attributes, item: item.attributes};
             var template = _.template($('#condition-template').html());
             this.$el.html(template(pObj));
         }
@@ -291,51 +262,56 @@
         render: function () {
             var template = _.template($('#button-template').html());
             this.$el.html(template);
-        },
-        save: function () {
-            var output = {};
-            output.title = $('#inputTitle')[0].value ? $('#inputTitle')[0].value : '';
-            output.description = $('#inputDescription')[0].value ? $('#inputDescription')[0].value : '';
-            output.dealerInternalNotes = $('#inputNotes')[0].value ? $('#inputNotes')[0].value : '';
-            output.material = {
-                description: $('#selectMaterials')[0].value ? $('#selectMaterials')[0].value : '',
-                restricted: $('#restrictedMaterial')[0].checked ? 'Y' : 'N'
-            };
-            var unit;
-            var units = document.getElementsByName('measurement-unit');
-            for(var i = 0; i < units.length; i++) {
-                if(units[i].checked){
-                    unit = units[i].value;
-                }
-            }
-            var shape;
-            var shapes = document.getElementsByName('measurement-shape');
-            for(var i = 0; i < shapes.length; i++) {
-                if(shapes[i].checked){
-                    shape = shapes[i].value;
-                }
-            }
-            output.measurement = {
-                unit: unit ? unit : '',
-                shape: shape ? shape : '',
-                length: $('#inputLength')[0].value ? $('#inputLength')[0].value : '',
-                depth: $('#inputDepth')[0].value ? $('#inputDepth')[0].value : '',
-                height: $('#inputHeight')[0].value ? $('#inputHeight')[0].value : '',
-                diameter: $('#inputDiameter')[0].value ? $('#inputDiameter')[0].value : ''
-            };
-            var condition;
-            var conditions = document.getElementsByName('condition-description');
-            for(var i = 0; i < conditions.length; i++) {
-                if(conditions[i].checked){
-                    condition = conditions[i].value;
-                }
-            }
-            output.condition = {
-                description: condition ? condition : ''
-            };
-            console.log(output);
         }
     });
+
+    var ParentView = Backbone.View.extend({
+        el: '#form',
+        render: function(item, enumeration) {
+            var template = _.template($('#parent-template').html());
+            this.$el.html(template);
+
+            this.titleView = new TitleView();
+            this.descriptionView = new DescriptionView();
+            this.notesView = new NotesView();
+            this.matsView = new MaterialsView();
+            this.measurementsView = new MeasurementsView();
+            this.conditionView = new ConditionView();
+            this.buttonView = new ButtonView();
+
+            this.titleView.render(item);
+            this.descriptionView.render(item);
+            this.notesView.render(item);
+            this.matsView.render(item, enumeration);
+            this.measurementsView.render(item, enumeration);
+            this.conditionView.render(item, enumeration);
+            this.buttonView.render();
+        },
+        save: function () {
+            item.set({
+                'id': this.titleView.$('#id').val(),
+                'title': this.titleView.$('#inputTitle').val(),
+                'description': this.descriptionView.$('#inputDescription').val(),
+                'dealerInternalNotes': this.notesView.$('#inputNotes').val(),
+                'material': {
+                    'description': this.matsView.$('#selectMaterials').val(),
+                    'restricted': this.matsView.$('#restrictedMaterial').val() ? 'Y' : 'N'
+                },
+                'measurement': {
+                    'unit': this.measurementsView.$('input[name="measurement-unit"]:checked').val(),
+                    'shape': this.measurementsView.$('input[name="measurement-shape"]:checked').val(),
+                    'length': this.measurementsView.$('#inputLength').val(),
+                    'depth': this.measurementsView.$('#inputDepth').val(),
+                    'height': this.measurementsView.$('#inputHeight').val(),
+                    'diameter': this.measurementsView.$('#inputDiameter').val()
+                },
+                'condition': {
+                    'description': this.conditionView.$('input[name="condition-description"]:checked').val()
+                }
+            });
+            console.log(item.toJSON());
+        }
+    })
 
     var Router = Backbone.Router.extend({
         routes: {
@@ -346,45 +322,16 @@
     var enumeration = new Enumerations();
     var item = new Item();
 
-    var titleView = new TitleView();
-    var descriptionView = new DescriptionView();
-    var notesView = new NotesView();
-    var matsView = new MaterialsView();
-    var measurementsView = new MeasurementsView();
-    var conditionView = new ConditionView();
-    var buttonView = new ButtonView();
+    var parentView = new ParentView();
 
     var router = new Router();
     router.on('route:home', function () {
         $.when(item.fetch(), enumeration.fetch()).done(function () {
-            titleView.render(item);
-            descriptionView.render(item);
-            notesView.render(item);
-            matsView.render(item, enumeration);
-            measurementsView.render(item, enumeration);
-            conditionView.render(item, enumeration);
-            buttonView.render();
+            parentView.render(item, enumeration);
         });
     });
 
     Backbone.history.start();
-
-    $.fn.serializeObject = function()
-    {
-        var o = {};
-        var a = this.serializeArray();
-        $.each(a, function() {
-            if (o[this.name]) {
-                if (!o[this.name].push) {
-                    o[this.name] = [o[this.name]];
-                }
-                o[this.name].push(this.value || '');
-            } else {
-                o[this.name] = this.value || '';
-            }
-        });
-        return o;
-    };
 </script>
 
 </body>
