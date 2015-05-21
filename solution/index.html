@@ -176,6 +176,7 @@
 
 <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.2.0/backbone-min.js"></script>
+<script src="js/backbone-baseview.min.js"></script>
 
 <script>
     var Enumerations = Backbone.Model.extend({
@@ -192,41 +193,47 @@
         }
     });
 
-    var TitleView = Backbone.View.extend({
-        el: '#title',
-        render: function (item) {
-            var template = _.template($('#title-template').html());
-            this.$el.html(template(item.attributes));
+    var TitleView = Backbone.BaseView.extend({
+        template: _.template($('#title-template').html()),
+        templateVars: function () {
+            return this.model.toJSON();
         }
     });
 
-    var DescriptionView = Backbone.View.extend({
-        el: '#description',
-        render: function (item) {
-            var template = _.template($('#description-template').html());
-            this.$el.html(template(item.attributes));
+    var DescriptionView = Backbone.BaseView.extend({
+        template: _.template($('#description-template').html()),
+        templateVars: function () {
+            return this.model.toJSON();
         }
     });
 
-    var NotesView = Backbone.View.extend({
-        el: '#notes',
-        render: function (item) {
-            var template = _.template($('#notes-template').html());
-            this.$el.html(template(item.attributes));
+    var NotesView = Backbone.BaseView.extend({
+        template: template = _.template($('#notes-template').html()),
+        templateVars: function () {
+            return this.model.toJSON();
         }
     });
 
-    var MaterialsView = Backbone.View.extend({
-        el: '#materials',
-        render: function (item, enumeration) {
-            var pObj = {itemEnums: enumeration.attributes, item: item.attributes};
-            var template = _.template($('#materials-template').html());
-            this.$el.html(template(pObj));
+    var MaterialsView = Backbone.BaseView.extend({
+        template: _.template($('#materials-template').html()),
+        templateVars: function () {
+            return {itemEnums: this.enumerationModel.toJSON(), item: this.itemModel.toJSON()};
+        },
+        initialize: function (options) {
+            this.itemModel = options.itemModel;
+            this.enumerationModel = options.enumerationModel;
         }
     });
 
-    var MeasurementsView = Backbone.View.extend({
-        el: '#measurements',
+    var MeasurementsView = Backbone.BaseView.extend({
+        template: _.template($('#measurements-template').html()),
+        templateVars: function () {
+            return {itemEnums: this.enumerationModel.toJSON(), item: this.itemModel.toJSON()};
+        },
+        initialize: function (options) {
+            this.itemModel = options.itemModel;
+            this.enumerationModel = options.enumerationModel;
+        },
         events: {
             'change input[type=radio]': 'changedRadio'
         },
@@ -240,78 +247,121 @@
                 this.$('.measurement-input').removeAttr('disabled');
                 this.$('#inputDiameter').attr('disabled','');
             }
+        }
+    });
+
+    var ConditionView = Backbone.BaseView.extend({
+        template: _.template($('#condition-template').html()),
+        templateVars: function () {
+            return {itemEnums: this.enumerationModel.toJSON(), item: this.itemModel.toJSON()};
         },
-        render: function (item, enumeration) {
-            var pObj = {itemEnums: enumeration.attributes, item: item.attributes};
-            var template = _.template($('#measurements-template').html());
-            this.$el.html(template(pObj));
+        initialize: function (options) {
+            this.itemModel = options.itemModel;
+            this.enumerationModel = options.enumerationModel;
         }
     });
 
-    var ConditionView = Backbone.View.extend({
-        el: '#condition',
-        render: function (item, enumeration) {
-            var pObj = {itemEnums: enumeration.attributes, item: item.attributes};
-            var template = _.template($('#condition-template').html());
-            this.$el.html(template(pObj));
-        }
+    var ButtonView = Backbone.BaseView.extend({
+        template: _.template($('#button-template').html())
     });
 
-    var ButtonView = Backbone.View.extend({
-        el: '#button',
-        render: function () {
-            var template = _.template($('#button-template').html());
-            this.$el.html(template);
-        }
-    });
-
-    var ParentView = Backbone.View.extend({
+    var ParentView = Backbone.BaseView.extend({
         el: '#form',
-        render: function(item, enumeration) {
-            var template = _.template($('#parent-template').html());
-            this.$el.html(template);
-
-            this.titleView = new TitleView();
-            this.descriptionView = new DescriptionView();
-            this.notesView = new NotesView();
-            this.matsView = new MaterialsView();
-            this.measurementsView = new MeasurementsView();
-            this.conditionView = new ConditionView();
-            this.buttonView = new ButtonView();
-
-            this.titleView.render(item);
-            this.descriptionView.render(item);
-            this.notesView.render(item);
-            this.matsView.render(item, enumeration);
-            this.measurementsView.render(item, enumeration);
-            this.conditionView.render(item, enumeration);
-            this.buttonView.render();
+        template: _.template($('#parent-template').html()),
+        subViewConfig: {
+            titleView: {
+                construct: TitleView,
+                location: '#title',
+                singleton: true
+            },
+            descriptionView: {
+                construct: DescriptionView,
+                location: '#description',
+                singleton: true
+            },
+            notesView: {
+                construct: NotesView,
+                location: '#notes',
+                singleton: true
+            },
+            materialsView: {
+                construct: MaterialsView,
+                location: '#materials',
+                singleton: true
+            },
+            measurementsView: {
+                construct: MeasurementsView,
+                location: '#measurements',
+                singleton: true
+            },
+            conditionView: {
+                construct: ConditionView,
+                location: '#condition',
+                singleton: true
+            },
+            buttonView: {
+                construct: ButtonView,
+                location: '#button',
+                singleton: true
+            }
+        },
+        initialize: function (options) {
+            this.itemModel = options.itemModel;
+            this.enumerationModel = options.enumerationModel;
+            this.subs.add({
+                'titleView': {model: this.itemModel},
+                'descriptionView': {model: this.itemModel},
+                'notesView': {model: this.itemModel},
+                'materialsView': {
+                    itemModel: this.itemModel,
+                    enumerationModel: this.enumerationModel
+                },
+                'measurementsView' : {
+                    itemModel: this.itemModel,
+                    enumerationModel: this.enumerationModel
+                },
+                'conditionView' : {
+                    itemModel: this.itemModel,
+                    enumerationModel: this.enumerationModel
+                },
+                'buttonView' : {}
+            });
         },
         save: function () {
-            item.set({
-                'id': this.titleView.$('#id').val(),
-                'title': this.titleView.$('#inputTitle').val(),
-                'description': this.descriptionView.$('#inputDescription').val(),
-                'dealerInternalNotes': this.notesView.$('#inputNotes').val(),
+            var shape = this.subs.get('measurementsView').$('input[name="measurement-shape"]:checked').val();
+            this.itemModel.set({
+                'id': this.subs.get('titleView').$('#id').val(),
+                'title': this.subs.get('titleView').$('#inputTitle').val(),
+                'description': this.subs.get('descriptionView').$('#inputDescription').val(),
+                'dealerInternalNotes': this.subs.get('notesView').$('#inputNotes').val(),
                 'material': {
-                    'description': this.matsView.$('#selectMaterials').val(),
-                    'restricted': this.matsView.$('#restrictedMaterial').val() ? 'Y' : 'N'
+                    'description': this.subs.get('materialsView').$('#selectMaterials').val(),
+                    'restricted': this.subs.get('materialsView').$('input[name="material-restricted"]:checked').val() ? 'Y' : 'N'
                 },
                 'measurement': {
-                    'unit': this.measurementsView.$('input[name="measurement-unit"]:checked').val(),
-                    'shape': this.measurementsView.$('input[name="measurement-shape"]:checked').val(),
-                    'length': this.measurementsView.$('#inputLength').val(),
-                    'depth': this.measurementsView.$('#inputDepth').val(),
-                    'height': this.measurementsView.$('#inputHeight').val(),
-                    'diameter': this.measurementsView.$('#inputDiameter').val()
+                    'unit': this.subs.get('measurementsView').$('input[name="measurement-unit"]:checked').val(),
+                    'shape': shape
                 },
                 'condition': {
-                    'description': this.conditionView.$('input[name="condition-description"]:checked').val()
+                    'description': this.subs.get('conditionView').$('input[name="condition-description"]:checked').val()
                 }
             });
-            console.log(item.toJSON());
+            if(shape === 'Rectangular') {
+                this.itemModel.get('measurement').length = this.subs.get('measurementsView').$('#inputLength').val();
+                this.itemModel.get('measurement').depth = this.subs.get('measurementsView').$('#inputDepth').val();
+                this.itemModel.get('measurement').height = this.subs.get('measurementsView').$('#inputHeight').val();
+                delete this.itemModel.get('measurement')['diameter'];
+            }
+            if(shape === 'Circular'){
+                console.log('test');
+                this.itemModel.get('measurement').diameter = this.subs.get('measurementsView').$('#inputDiameter').val();
+                delete this.itemModel.get('measurement')['length'];
+                delete this.itemModel.get('measurement')['depth'];
+                delete this.itemModel.get('measurement')['height'];
+            }
+            console.log(this.itemModel.toJSON());
         }
-    })
+    });
 
     var Router = Backbone.Router.extend({
         routes: {
@@ -319,15 +369,15 @@
         }
     });
 
-    var enumeration = new Enumerations();
-    var item = new Item();
+    var enumerationModel = new Enumerations();
+    var itemModel = new Item();
 
-    var parentView = new ParentView();
+    var parentView = new ParentView({itemModel: itemModel, enumerationModel: enumerationModel});
 
     var router = new Router();
     router.on('route:home', function () {
-        $.when(item.fetch(), enumeration.fetch()).done(function () {
-            parentView.render(item, enumeration);
+        $.when(itemModel.fetch(), enumerationModel.fetch()).done(function () {
+            parentView.render();
         });
     });
 
