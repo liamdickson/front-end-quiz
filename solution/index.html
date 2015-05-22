@@ -23,7 +23,7 @@
 </head>
 <body>
 
-<div class="container">
+<div id="main-container">
     <div id="form"></div>
 </div>
 
@@ -58,19 +58,19 @@
 
 <script type="text/template" id="description-template">
     <label for="inputDescription">Description</label>
-    <textarea name="description" id="inputDescription" class="form-control" required="" rows="10"
+    <textarea name="description" id="inputDescription" class="form-control no-resize" required="" rows="10"
             ><%= description ? description : '' %></textarea>
 </script>
 
 <script type="text/template" id="notes-template">
     <label for="inputNotes">internal notes</label>
-    <textarea name="dealerInternalNotes" id="inputNotes" class="form-control" required=""
+    <textarea name="dealerInternalNotes" id="inputNotes" class="form-control no-resize" required=""
             ><%= dealerInternalNotes ? dealerInternalNotes : '' %></textarea>
 </script>
 
 <script type="text/template" id="materials-template">
     <label for="selectMaterials">Materials</label>
-    <select name="material-description" id="selectMaterials" class="form-control" required="">
+    <select name="material-description" id="selectMaterials" class="form-control materials-select" required="">
         <option disabled="">Select...</option>
         <% _.each(itemEnums.material, function(mat){ %>
         <option <%= item.material.description === mat ? 'selected=""' : '' %> ><%= mat %></option>
@@ -152,7 +152,7 @@
 
 <script type="text/template" id="condition-template">
     <div class="col-md-12">
-        <label>Condition <span class="subtext">(Select one)</span></label>
+        <label>Condition <span class="input-subtext">(Select one)</span></label>
         <div class="radio">
             <% _.each(itemEnums.condition.description, function(cond){ %>
             <label class="radio-inline"><input name="condition-description" id="<%= cond %>"

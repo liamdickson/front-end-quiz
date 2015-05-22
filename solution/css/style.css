@@ -2,7 +2,7 @@ body {
     background-color: #dddddd;
 }
 
-.container {
+#main-container {
     width: 800px;
     background-color: #FFFFFF;
     padding: 30px 150px 30px 50px;
@@ -10,14 +10,14 @@ body {
     border: 1px solid darkgray;
 }
 
-select.form-control {
+.materials-select {
     width: 200px;
 }
-textarea.form-control {
+.no-resize {
     resize: vertical;
 }
 
-.subtext {
+.label-subtext {
     font-style: italic;
     font-weight: normal;
 }
