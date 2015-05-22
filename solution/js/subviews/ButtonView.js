@@ -7,11 +7,5 @@ var $ = require('jquery')
 var Backbone = require('backbone-base-and-form-view');
 
 module.exports = Backbone.BaseView.extend({
-    template: _.template($('#button-template').html()),
-    events: {
-        'click #save': 'onClick'
-    },
-    onClick: function () {
-        this.parentView.save();
-    }
+    template: _.template($('#button-template').html())
 });

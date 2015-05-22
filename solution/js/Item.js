@@ -7,6 +7,6 @@ var Backbone = require('backbone');
 module.exports = Backbone.Model.extend({
     urlRoot: '../item.json',
     parse: function(response) {
-        return response['result']['item'];
+        return response.result.item;
     }
 });

@@ -7,6 +7,6 @@ var Backbone = require('backbone');
 module.exports = Backbone.Model.extend({
     urlRoot: '../enums.json',
     parse: function(response) {
-        return response['itemEnums'];
+        return response.itemEnums;
     }
 });

@@ -16,6 +16,9 @@ var TitleView = require('./subviews/TitleView');
 module.exports = Backbone.BaseView.extend({
     el: '#form',
     template: _.template($('#parent-template').html()),
+    events: {
+        'click #save': 'save'
+    },
     subViewConfig: {
         titleView: {
             construct: TitleView,
@@ -98,13 +101,13 @@ module.exports = Backbone.BaseView.extend({
             this.itemModel.get('measurement').length = this.subs.get('measurementsView').$('#inputLength').val();
             this.itemModel.get('measurement').depth = this.subs.get('measurementsView').$('#inputDepth').val();
             this.itemModel.get('measurement').height = this.subs.get('measurementsView').$('#inputHeight').val();
-            delete this.itemModel.get('measurement')['diameter'];
+            delete this.itemModel.get('measurement').diameter;
         }
         if(shape === 'Circular'){
             this.itemModel.get('measurement').diameter = this.subs.get('measurementsView').$('#inputDiameter').val();
-            delete this.itemModel.get('measurement')['length'];
-            delete this.itemModel.get('measurement')['depth'];
-            delete this.itemModel.get('measurement')['height'];
+            delete this.itemModel.get('measurement').length;
+            delete this.itemModel.get('measurement').depth;
+            delete this.itemModel.get('measurement').height;
         }
         console.log(this.itemModel.toJSON());
     }
